@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__vibe_kanban__list_tasks"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "vibe_kanban"
+  ]
+}
