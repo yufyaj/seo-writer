@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "mcp__vibe_kanban__list_tasks"
+      "mcp__vibe_kanban__list_tasks",
+      "WebSearch"
     ]
   },
   "enableAllProjectMcpServers": true,
