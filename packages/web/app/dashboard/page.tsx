@@ -1,6 +1,7 @@
 import { auth } from '@/lib/auth/auth'
 import { redirect } from 'next/navigation'
 import { logout } from '@/lib/auth/actions'
+import Link from 'next/link'
 
 export default async function DashboardPage() {
   const session = await auth()
@@ -18,7 +19,13 @@ export default async function DashboardPage() {
             ようこそ、{session.user.email} さん
           </p>
 
-          <div className="mt-8">
+          <div className="mt-8 flex gap-4">
+            <Link
+              href="/dashboard/settings"
+              className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+            >
+              会社・サイト設定
+            </Link>
             <form action={logout}>
               <button
                 type="submit"
