@@ -57,7 +57,23 @@ model PostProfile {
   created_at       DateTime @default(now())
   updated_at       DateTime @updatedAt
 
-  company Company @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  company      Company                    @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  articleTypes PostProfileArticleType[]
 
   @@map("post_profiles")
+}
+
+model PostProfileArticleType {
+  id              BigInt   @id @default(autoincrement())
+  post_profile_id BigInt
+  name            String   @db.VarChar(255)
+  description     String?  @db.Text
+  prompt_template String   @db.Text
+  is_enabled      Boolean  @default(true)
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  postProfile PostProfile @relation(fields: [post_profile_id], references: [id], onDelete: Cascade)
+
+  @@map("post_profile_article_types")
 }
