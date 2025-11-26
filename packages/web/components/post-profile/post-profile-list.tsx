@@ -139,6 +139,12 @@ export function PostProfileList({ profiles: initialProfiles }: Props) {
                       記事タイプ
                     </Link>
                     <Link
+                      href={`/dashboard/profiles/${profile.id}/schedule`}
+                      className="text-blue-600 hover:underline"
+                    >
+                      スケジュール
+                    </Link>
+                    <Link
                       href={`/dashboard/profiles/${profile.id}/edit`}
                       className="text-blue-600 hover:underline"
                     >

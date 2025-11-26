@@ -57,8 +57,9 @@ model PostProfile {
   created_at       DateTime @default(now())
   updated_at       DateTime @updatedAt
 
-  company      Company                    @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  company      Company                  @relation(fields: [company_id], references: [id], onDelete: Cascade)
   articleTypes PostProfileArticleType[]
+  schedule     PostProfileSchedule?
 
   @@map("post_profiles")
 }
@@ -76,4 +77,20 @@ model PostProfileArticleType {
   postProfile PostProfile @relation(fields: [post_profile_id], references: [id], onDelete: Cascade)
 
   @@map("post_profile_article_types")
+}
+
+model PostProfileSchedule {
+  post_profile_id    BigInt   @id
+  schedule_type      String   @default("none") @db.VarChar(20)
+  daily_time         String?  @db.VarChar(5)
+  weekly_day_of_week Int?
+  weekly_time        String?  @db.VarChar(5)
+  cron_expression    String?  @db.Text
+  is_enabled         Boolean  @default(false)
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
+
+  postProfile PostProfile @relation(fields: [post_profile_id], references: [id], onDelete: Cascade)
+
+  @@map("post_profile_schedules")
 }
