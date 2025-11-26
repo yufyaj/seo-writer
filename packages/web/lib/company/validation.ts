@@ -43,7 +43,7 @@ const companyBaseSchema = z.object({
     .max(255, 'ユーザー名は255文字以内で入力してください'),
   wp_default_status: z
     .enum(wpStatusValues, {
-      errorMap: () => ({ message: '有効なステータスを選択してください' }),
+      error: '有効なステータスを選択してください',
     })
     .default('draft'),
 })

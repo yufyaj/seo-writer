@@ -19,12 +19,18 @@ export default async function DashboardPage() {
             ようこそ、{session.user.email} さん
           </p>
 
-          <div className="mt-8 flex gap-4">
+          <div className="mt-8 flex flex-wrap gap-4">
             <Link
               href="/dashboard/settings"
               className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
             >
               会社・サイト設定
+            </Link>
+            <Link
+              href="/dashboard/profiles"
+              className="rounded-md bg-green-600 px-4 py-2 text-white hover:bg-green-700"
+            >
+              投稿プロファイル
             </Link>
             <form action={logout}>
               <button
