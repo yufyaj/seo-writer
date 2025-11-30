@@ -4,6 +4,7 @@ import { authenticateUser } from './authenticate'
 import { loginSchema } from './validation'
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  trustHost: true,
   providers: [
     Credentials({
       credentials: {

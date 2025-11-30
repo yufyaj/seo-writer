@@ -9,38 +9,8 @@ type Props = {
   disabled?: boolean
 }
 
-type KeywordFieldKey = Exclude<keyof KeywordStrategy, 'strategy_concept'>
-
-const keywordFields: { key: KeywordFieldKey; label: string; description: string }[] = [
-  {
-    key: 'head_middle',
-    label: 'ヘッド・ミドルキーワード',
-    description: '検索ボリュームの多い主要キーワード',
-  },
-  {
-    key: 'transactional_cv',
-    label: 'トランザクショナル・CV系',
-    description: '購入・申込に直結するキーワード',
-  },
-  {
-    key: 'informational_knowhow',
-    label: 'インフォメーショナル・ノウハウ系',
-    description: '情報収集段階のユーザー向けキーワード',
-  },
-  {
-    key: 'business_specific',
-    label: 'ビジネス固有キーワード',
-    description: '自社サービス・商品固有のキーワード',
-  },
-]
-
 export function KeywordStrategyEditor({ value, onChange, disabled }: Props) {
-  const [newKeywords, setNewKeywords] = useState<Record<KeywordFieldKey, string>>({
-    head_middle: '',
-    transactional_cv: '',
-    informational_knowhow: '',
-    business_specific: '',
-  })
+  const [newLongtailKeyword, setNewLongtailKeyword] = useState('')
 
   const handleConceptChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     onChange({
@@ -49,38 +19,42 @@ export function KeywordStrategyEditor({ value, onChange, disabled }: Props) {
     })
   }
 
-  const handleAddKeyword = (field: KeywordFieldKey) => {
-    const keyword = newKeywords[field].trim()
+  const handleMainKeywordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onChange({
+      ...value,
+      main_keyword: e.target.value,
+    })
+  }
+
+  const handleAddLongtailKeyword = () => {
+    const keyword = newLongtailKeyword.trim()
     if (!keyword) return
 
-    const currentKeywords = value[field] || []
+    const currentKeywords = value.longtail_keywords || []
     if (currentKeywords.includes(keyword)) {
-      setNewKeywords((prev) => ({ ...prev, [field]: '' }))
+      setNewLongtailKeyword('')
       return
     }
 
     onChange({
       ...value,
-      [field]: [...currentKeywords, keyword],
+      longtail_keywords: [...currentKeywords, keyword],
     })
-    setNewKeywords((prev) => ({ ...prev, [field]: '' }))
+    setNewLongtailKeyword('')
   }
 
-  const handleRemoveKeyword = (field: KeywordFieldKey, index: number) => {
-    const currentKeywords = value[field] || []
+  const handleRemoveLongtailKeyword = (index: number) => {
+    const currentKeywords = value.longtail_keywords || []
     onChange({
       ...value,
-      [field]: currentKeywords.filter((_, i) => i !== index),
+      longtail_keywords: currentKeywords.filter((_, i) => i !== index),
     })
   }
 
-  const handleKeyDown = (
-    e: React.KeyboardEvent<HTMLInputElement>,
-    field: KeywordFieldKey
-  ) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault()
-      handleAddKeyword(field)
+      handleAddLongtailKeyword()
     }
   }
 
@@ -108,59 +82,79 @@ export function KeywordStrategyEditor({ value, onChange, disabled }: Props) {
         />
       </div>
 
-      {/* キーワードフィールド */}
-      {keywordFields.map(({ key, label, description }) => (
-        <div key={key}>
-          <label className="block text-sm font-medium text-gray-700">
-            {label}
-          </label>
-          <p className="mt-1 text-sm text-gray-500">{description}</p>
+      {/* メインキーワード（単一） */}
+      <div>
+        <label
+          htmlFor="main_keyword"
+          className="block text-sm font-medium text-gray-700"
+        >
+          メインキーワード
+        </label>
+        <p className="mt-1 text-sm text-gray-500">
+          検索ボリュームの多い主要キーワード（1つのみ）
+        </p>
+        <input
+          type="text"
+          id="main_keyword"
+          value={value.main_keyword || ''}
+          onChange={handleMainKeywordChange}
+          disabled={disabled}
+          className="mt-2 block w-full rounded-md border border-gray-300 px-3 py-2 disabled:bg-gray-100"
+          placeholder="例: SEO対策"
+        />
+      </div>
 
-          {/* キーワードタグ */}
-          <div className="mt-2 flex flex-wrap gap-2">
-            {(value[key] || []).map((keyword, index) => (
-              <span
-                key={index}
-                className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-3 py-1 text-sm text-blue-800"
-              >
-                {keyword}
-                {!disabled && (
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveKeyword(key, index)}
-                    className="ml-1 text-blue-600 hover:text-blue-800"
-                  >
-                    ×
-                  </button>
-                )}
-              </span>
-            ))}
-          </div>
+      {/* ロングテールキーワード（複数） */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700">
+          ロングテールキーワード
+        </label>
+        <p className="mt-1 text-sm text-gray-500">
+          特定のニッチな検索意図に対応するキーワード（記事生成時に2-3個をランダム選定）
+        </p>
 
-          {/* 追加フォーム */}
-          {!disabled && (
-            <div className="mt-2 flex gap-2">
-              <input
-                type="text"
-                value={newKeywords[key]}
-                onChange={(e) =>
-                  setNewKeywords((prev) => ({ ...prev, [key]: e.target.value }))
-                }
-                onKeyDown={(e) => handleKeyDown(e, key)}
-                placeholder="キーワードを入力してEnter"
-                className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm"
-              />
-              <button
-                type="button"
-                onClick={() => handleAddKeyword(key)}
-                className="rounded-md bg-gray-100 px-3 py-2 text-sm text-gray-700 hover:bg-gray-200"
-              >
-                追加
-              </button>
-            </div>
-          )}
+        {/* キーワードタグ */}
+        <div className="mt-2 flex flex-wrap gap-2">
+          {(value.longtail_keywords || []).map((keyword, index) => (
+            <span
+              key={index}
+              className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-3 py-1 text-sm text-blue-800"
+            >
+              {keyword}
+              {!disabled && (
+                <button
+                  type="button"
+                  onClick={() => handleRemoveLongtailKeyword(index)}
+                  className="ml-1 text-blue-600 hover:text-blue-800"
+                >
+                  ×
+                </button>
+              )}
+            </span>
+          ))}
         </div>
-      ))}
+
+        {/* 追加フォーム */}
+        {!disabled && (
+          <div className="mt-2 flex gap-2">
+            <input
+              type="text"
+              value={newLongtailKeyword}
+              onChange={(e) => setNewLongtailKeyword(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="キーワードを入力してEnter"
+              className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm"
+            />
+            <button
+              type="button"
+              onClick={handleAddLongtailKeyword}
+              className="rounded-md bg-gray-100 px-3 py-2 text-sm text-gray-700 hover:bg-gray-200"
+            >
+              追加
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

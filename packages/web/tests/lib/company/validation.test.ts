@@ -12,7 +12,6 @@ describe('companyCreateSchema', () => {
     brand_name: 'テストブランド',
     about_text: '会社紹介文です',
     site_url: 'https://example.com',
-    contact_url: 'https://example.com/contact',
     wp_base_url: 'https://blog.example.com',
     wp_username: 'admin',
     wp_app_password: 'xxxx xxxx xxxx xxxx',

@@ -18,7 +18,6 @@ const scheduleTypeLabels: Record<ScheduleType, string> = {
   none: 'スケジュールなし',
   daily: '毎日',
   weekly: '毎週',
-  cron: 'cron形式',
 }
 
 const dayOfWeekLabels: Record<number, string> = {
@@ -38,11 +37,9 @@ function formatScheduleDescription(schedule: SerializedSchedule): string {
     case 'none':
       return '手動実行のみ'
     case 'daily':
-      return `毎日 ${schedule.daily_time} に実行`
+      return `毎日 ${schedule.daily_hour}時 に実行`
     case 'weekly':
-      return `毎週 ${dayOfWeekLabels[schedule.weekly_day_of_week ?? 1]} ${schedule.weekly_time} に実行`
-    case 'cron':
-      return `cron: ${schedule.cron_expression}`
+      return `毎週 ${dayOfWeekLabels[schedule.weekly_day_of_week ?? 1]} ${schedule.weekly_hour}時 に実行`
     default:
       return '不明'
   }

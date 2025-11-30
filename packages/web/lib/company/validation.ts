@@ -26,12 +26,6 @@ const companyBaseSchema = z.object({
     .max(255, 'URLは255文字以内で入力してください')
     .optional()
     .or(z.literal('')),
-  contact_url: z
-    .string()
-    .url('有効なURLを入力してください')
-    .max(255, 'URLは255文字以内で入力してください')
-    .optional()
-    .or(z.literal('')),
   wp_base_url: z
     .string()
     .min(1, 'WordPress URLを入力してください')

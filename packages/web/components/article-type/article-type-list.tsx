@@ -7,6 +7,7 @@ import {
   toggleArticleTypeEnabled,
   type SerializedArticleType,
 } from '@/lib/article-type/actions'
+import { generateAndPublishArticle } from '@/lib/job/actions'
 
 type Props = {
   profileId: string
@@ -19,7 +20,9 @@ export function ArticleTypeList({
 }: Props) {
   const [articleTypes, setArticleTypes] = useState(initialArticleTypes)
   const [isLoading, setIsLoading] = useState<string | null>(null)
+  const [isGenerating, setIsGenerating] = useState<string | null>(null)
   const [error, setError] = useState('')
+  const [successMessage, setSuccessMessage] = useState('')
 
   const handleToggleEnabled = async (id: string) => {
     setIsLoading(id)
@@ -63,6 +66,35 @@ export function ArticleTypeList({
     }
   }
 
+  const handleGenerate = async (articleTypeId: string, name: string) => {
+    if (!confirm(`「${name}」で記事を生成しますか？\n\n※ 生成には数分かかる場合があります。`)) {
+      return
+    }
+
+    setIsGenerating(articleTypeId)
+    setError('')
+    setSuccessMessage('')
+
+    try {
+      const result = await generateAndPublishArticle(profileId, articleTypeId)
+      if (result.success && result.data) {
+        if (result.data.success) {
+          setSuccessMessage(
+            `記事「${result.data.article?.title || '無題'}」を生成・投稿しました！`
+          )
+        } else {
+          setError(result.data.errorMessage || '記事生成に失敗しました')
+        }
+      } else if (!result.success) {
+        setError(result.error)
+      }
+    } catch {
+      setError('記事生成中にエラーが発生しました')
+    } finally {
+      setIsGenerating(null)
+    }
+  }
+
   if (articleTypes.length === 0) {
     return (
       <div className="py-12 text-center">
@@ -82,6 +114,12 @@ export function ArticleTypeList({
       {error && (
         <div className="rounded-md bg-red-50 p-4 text-sm text-red-600">
           {error}
+        </div>
+      )}
+
+      {successMessage && (
+        <div className="rounded-md bg-green-50 p-4 text-sm text-green-600">
+          {successMessage}
         </div>
       )}
 
@@ -138,6 +176,18 @@ export function ArticleTypeList({
                 </td>
                 <td className="whitespace-nowrap px-6 py-4 text-right text-sm">
                   <div className="flex justify-end gap-2">
+                    <button
+                      onClick={() =>
+                        handleGenerate(articleType.id, articleType.name)
+                      }
+                      disabled={
+                        isGenerating === articleType.id ||
+                        !articleType.is_enabled
+                      }
+                      className="rounded bg-green-600 px-3 py-1 text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {isGenerating === articleType.id ? '生成中...' : '記事生成'}
+                    </button>
                     <Link
                       href={`/dashboard/profiles/${profileId}/article-types/${articleType.id}/edit`}
                       className="text-blue-600 hover:underline"

@@ -5,10 +5,8 @@ import { z } from 'zod'
  */
 export const keywordStrategySchema = z.object({
   strategy_concept: z.string().optional().default(''),
-  head_middle: z.array(z.string()).optional().default([]),
-  transactional_cv: z.array(z.string()).optional().default([]),
-  informational_knowhow: z.array(z.string()).optional().default([]),
-  business_specific: z.array(z.string()).optional().default([]),
+  main_keyword: z.string().optional().default(''),
+  longtail_keywords: z.array(z.string()).optional().default([]),
 })
 
 /**
@@ -22,10 +20,8 @@ export type KeywordStrategy = z.infer<typeof keywordStrategySchema>
 export function createEmptyKeywordStrategy(): KeywordStrategy {
   return {
     strategy_concept: '',
-    head_middle: [],
-    transactional_cv: [],
-    informational_knowhow: [],
-    business_specific: [],
+    main_keyword: '',
+    longtail_keywords: [],
   }
 }
 

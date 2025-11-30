@@ -12,16 +12,15 @@ describe('keywordStrategySchema', () => {
   it('有効なキーワード戦略を受け入れる', () => {
     const validStrategy: KeywordStrategy = {
       strategy_concept: 'SEO戦略の全体像',
-      head_middle: ['キーワード1', 'キーワード2'],
-      transactional_cv: ['CV系キーワード'],
-      informational_knowhow: ['ノウハウ系'],
-      business_specific: ['固有キーワード'],
+      main_keyword: 'メインキーワード',
+      longtail_keywords: ['ロングテールキーワード1', 'ロングテールキーワード2'],
     }
     const result = keywordStrategySchema.safeParse(validStrategy)
     expect(result.success).toBe(true)
     if (result.success) {
       expect(result.data.strategy_concept).toBe('SEO戦略の全体像')
-      expect(result.data.head_middle).toHaveLength(2)
+      expect(result.data.main_keyword).toBe('メインキーワード')
+      expect(result.data.longtail_keywords).toHaveLength(2)
     }
   })
 
@@ -30,30 +29,36 @@ describe('keywordStrategySchema', () => {
     expect(result.success).toBe(true)
     if (result.success) {
       expect(result.data.strategy_concept).toBe('')
-      expect(result.data.head_middle).toEqual([])
-      expect(result.data.transactional_cv).toEqual([])
-      expect(result.data.informational_knowhow).toEqual([])
-      expect(result.data.business_specific).toEqual([])
+      expect(result.data.main_keyword).toBe('')
+      expect(result.data.longtail_keywords).toEqual([])
     }
   })
 
   it('部分的なデータを受け入れてデフォルト値を補完', () => {
     const partialStrategy = {
       strategy_concept: '部分的な戦略',
-      head_middle: ['キーワード'],
+      main_keyword: 'キーワード',
     }
     const result = keywordStrategySchema.safeParse(partialStrategy)
     expect(result.success).toBe(true)
     if (result.success) {
       expect(result.data.strategy_concept).toBe('部分的な戦略')
-      expect(result.data.head_middle).toEqual(['キーワード'])
-      expect(result.data.transactional_cv).toEqual([])
+      expect(result.data.main_keyword).toBe('キーワード')
+      expect(result.data.longtail_keywords).toEqual([])
     }
   })
 
-  it('配列に文字列以外が含まれる場合を拒否', () => {
+  it('ロングテール配列に文字列以外が含まれる場合を拒否', () => {
     const invalidStrategy = {
-      head_middle: [123, 'キーワード'],
+      longtail_keywords: [123, 'キーワード'],
+    }
+    const result = keywordStrategySchema.safeParse(invalidStrategy)
+    expect(result.success).toBe(false)
+  })
+
+  it('main_keywordが文字列以外の場合を拒否', () => {
+    const invalidStrategy = {
+      main_keyword: 123,
     }
     const result = keywordStrategySchema.safeParse(invalidStrategy)
     expect(result.success).toBe(false)
@@ -65,10 +70,8 @@ describe('createEmptyKeywordStrategy', () => {
     const empty = createEmptyKeywordStrategy()
     expect(empty).toEqual({
       strategy_concept: '',
-      head_middle: [],
-      transactional_cv: [],
-      informational_knowhow: [],
-      business_specific: [],
+      main_keyword: '',
+      longtail_keywords: [],
     })
   })
 })
@@ -80,10 +83,8 @@ describe('postProfileCreateSchema', () => {
     wp_category_id: 1,
     keyword_strategy: {
       strategy_concept: 'SEO戦略',
-      head_middle: ['キーワード1'],
-      transactional_cv: [],
-      informational_knowhow: [],
-      business_specific: [],
+      main_keyword: 'キーワード1',
+      longtail_keywords: [],
     },
     is_active: true,
   }
@@ -215,10 +216,8 @@ describe('postProfileCreateSchema', () => {
         ...validInput,
         keyword_strategy: {
           strategy_concept: '戦略コンセプト',
-          head_middle: ['キーワードA', 'キーワードB'],
-          transactional_cv: ['CV1'],
-          informational_knowhow: ['ノウハウ1'],
-          business_specific: ['固有1'],
+          main_keyword: 'キーワードA',
+          longtail_keywords: ['ロングテール1', 'ロングテール2'],
         },
       }
       const result = postProfileCreateSchema.safeParse(input)
@@ -231,7 +230,7 @@ describe('postProfileCreateSchema', () => {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data.keyword_strategy.strategy_concept).toBe('')
-        expect(result.data.keyword_strategy.head_middle).toEqual([])
+        expect(result.data.keyword_strategy.main_keyword).toBe('')
       }
     })
 
@@ -289,10 +288,8 @@ describe('postProfileUpdateSchema', () => {
     wp_category_id: 1,
     keyword_strategy: {
       strategy_concept: 'SEO戦略',
-      head_middle: ['キーワード1'],
-      transactional_cv: [],
-      informational_knowhow: [],
-      business_specific: [],
+      main_keyword: 'キーワード1',
+      longtail_keywords: [],
     },
     is_active: true,
   }

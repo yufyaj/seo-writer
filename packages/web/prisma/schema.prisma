@@ -60,6 +60,8 @@ model PostProfile {
   company      Company                  @relation(fields: [company_id], references: [id], onDelete: Cascade)
   articleTypes PostProfileArticleType[]
   schedule     PostProfileSchedule?
+  jobs         Job[]
+  jobItems     JobItem[]
 
   @@map("post_profiles")
 }
@@ -75,6 +77,7 @@ model PostProfileArticleType {
   updated_at      DateTime @updatedAt
 
   postProfile PostProfile @relation(fields: [post_profile_id], references: [id], onDelete: Cascade)
+  jobItems    JobItem[]
 
   @@map("post_profile_article_types")
 }
@@ -82,9 +85,9 @@ model PostProfileArticleType {
 model PostProfileSchedule {
   post_profile_id    BigInt   @id
   schedule_type      String   @default("none") @db.VarChar(20)
-  daily_time         String?  @db.VarChar(5)
+  daily_hour         Int?
   weekly_day_of_week Int?
-  weekly_time        String?  @db.VarChar(5)
+  weekly_hour        Int?
   cron_expression    String?  @db.Text
   is_enabled         Boolean  @default(false)
   created_at         DateTime @default(now())
@@ -93,4 +96,40 @@ model PostProfileSchedule {
   postProfile PostProfile @relation(fields: [post_profile_id], references: [id], onDelete: Cascade)
 
   @@map("post_profile_schedules")
+}
+
+model Job {
+  id              BigInt    @id @default(autoincrement())
+  post_profile_id BigInt
+  trigger_type    String    @db.VarChar(20)
+  status          String    @db.VarChar(20)
+  started_at      DateTime  @default(now())
+  finished_at     DateTime?
+  error_message   String?   @db.Text
+
+  postProfile PostProfile @relation(fields: [post_profile_id], references: [id], onDelete: Cascade)
+  jobItems    JobItem[]
+
+  @@map("jobs")
+}
+
+model JobItem {
+  id                           BigInt   @id @default(autoincrement())
+  job_id                       BigInt
+  post_profile_id              BigInt
+  post_profile_article_type_id BigInt
+  keyword                      String?  @db.VarChar(255)
+  title                        String?  @db.VarChar(512)
+  wp_post_id                   BigInt?
+  wp_post_url                  String?  @db.VarChar(512)
+  wp_media_id                  BigInt?
+  status                       String   @db.VarChar(20)
+  error_message                String?  @db.Text
+  created_at                   DateTime @default(now())
+
+  job         Job                    @relation(fields: [job_id], references: [id], onDelete: Cascade)
+  postProfile PostProfile            @relation(fields: [post_profile_id], references: [id], onDelete: Cascade)
+  articleType PostProfileArticleType @relation(fields: [post_profile_article_type_id], references: [id], onDelete: Cascade)
+
+  @@map("job_items")
 }

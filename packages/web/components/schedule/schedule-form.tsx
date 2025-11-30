@@ -9,6 +9,7 @@ import {
 import {
   scheduleTypes,
   daysOfWeek,
+  hours,
   type ScheduleType,
 } from '@/lib/schedule/validation'
 
@@ -21,7 +22,6 @@ const scheduleTypeLabels: Record<ScheduleType, string> = {
   none: 'スケジュールなし（手動のみ）',
   daily: '毎日',
   weekly: '毎週',
-  cron: 'cron形式（高度）',
 }
 
 const dayOfWeekLabels: Record<number, string> = {
@@ -41,13 +41,14 @@ export function ScheduleForm({ profileId, schedule }: Props) {
   const [scheduleType, setScheduleType] = useState<ScheduleType>(
     (schedule?.schedule_type as ScheduleType) ?? 'none'
   )
-  const [dailyTime, setDailyTime] = useState(schedule?.daily_time ?? '')
+  const [dailyHour, setDailyHour] = useState<number | ''>(
+    schedule?.daily_hour ?? ''
+  )
   const [weeklyDayOfWeek, setWeeklyDayOfWeek] = useState<number | ''>(
     schedule?.weekly_day_of_week ?? ''
   )
-  const [weeklyTime, setWeeklyTime] = useState(schedule?.weekly_time ?? '')
-  const [cronExpression, setCronExpression] = useState(
-    schedule?.cron_expression ?? ''
+  const [weeklyHour, setWeeklyHour] = useState<number | ''>(
+    schedule?.weekly_hour ?? ''
   )
   const [isEnabled, setIsEnabled] = useState(schedule?.is_enabled ?? false)
 
@@ -66,11 +67,10 @@ export function ScheduleForm({ profileId, schedule }: Props) {
       const result = await saveSchedule({
         post_profile_id: profileId,
         schedule_type: scheduleType,
-        daily_time: dailyTime || null,
+        daily_hour: dailyHour !== '' ? Number(dailyHour) : null,
         weekly_day_of_week:
           weeklyDayOfWeek !== '' ? Number(weeklyDayOfWeek) : null,
-        weekly_time: weeklyTime || null,
-        cron_expression: cronExpression || null,
+        weekly_hour: weeklyHour !== '' ? Number(weeklyHour) : null,
         is_enabled: isEnabled,
       })
 
@@ -120,20 +120,28 @@ export function ScheduleForm({ profileId, schedule }: Props) {
       {/* Daily設定 */}
       {scheduleType === 'daily' && (
         <div>
-          <label htmlFor="daily_time" className="block text-sm font-medium">
+          <label htmlFor="daily_hour" className="block text-sm font-medium">
             実行時刻 <span className="text-red-500">*</span>
           </label>
-          <input
-            id="daily_time"
-            type="time"
-            value={dailyTime}
-            onChange={(e) => setDailyTime(e.target.value)}
+          <select
+            id="daily_hour"
+            value={dailyHour}
+            onChange={(e) =>
+              setDailyHour(e.target.value !== '' ? Number(e.target.value) : '')
+            }
             className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
             disabled={isLoading}
-          />
-          {fieldErrors.daily_time && (
+          >
+            <option value="">選択してください</option>
+            {hours.map((hour) => (
+              <option key={hour} value={hour}>
+                {hour}時
+              </option>
+            ))}
+          </select>
+          {fieldErrors.daily_hour && (
             <p className="mt-1 text-sm text-red-600">
-              {fieldErrors.daily_time[0]}
+              {fieldErrors.daily_hour[0]}
             </p>
           )}
         </div>
@@ -174,53 +182,34 @@ export function ScheduleForm({ profileId, schedule }: Props) {
             )}
           </div>
           <div>
-            <label htmlFor="weekly_time" className="block text-sm font-medium">
+            <label htmlFor="weekly_hour" className="block text-sm font-medium">
               実行時刻 <span className="text-red-500">*</span>
             </label>
-            <input
-              id="weekly_time"
-              type="time"
-              value={weeklyTime}
-              onChange={(e) => setWeeklyTime(e.target.value)}
+            <select
+              id="weekly_hour"
+              value={weeklyHour}
+              onChange={(e) =>
+                setWeeklyHour(
+                  e.target.value !== '' ? Number(e.target.value) : ''
+                )
+              }
               className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
               disabled={isLoading}
-            />
-            {fieldErrors.weekly_time && (
+            >
+              <option value="">選択してください</option>
+              {hours.map((hour) => (
+                <option key={hour} value={hour}>
+                  {hour}時
+                </option>
+              ))}
+            </select>
+            {fieldErrors.weekly_hour && (
               <p className="mt-1 text-sm text-red-600">
-                {fieldErrors.weekly_time[0]}
+                {fieldErrors.weekly_hour[0]}
               </p>
             )}
           </div>
         </>
-      )}
-
-      {/* Cron設定 */}
-      {scheduleType === 'cron' && (
-        <div>
-          <label
-            htmlFor="cron_expression"
-            className="block text-sm font-medium"
-          >
-            cron式 <span className="text-red-500">*</span>
-          </label>
-          <p className="mt-1 text-sm text-gray-500">
-            例: 0 9 * * 1-5（平日9時に実行）
-          </p>
-          <input
-            id="cron_expression"
-            type="text"
-            value={cronExpression}
-            onChange={(e) => setCronExpression(e.target.value)}
-            placeholder="0 9 * * 1-5"
-            className="mt-2 block w-full rounded-md border border-gray-300 px-3 py-2 font-mono"
-            disabled={isLoading}
-          />
-          {fieldErrors.cron_expression && (
-            <p className="mt-1 text-sm text-red-600">
-              {fieldErrors.cron_expression[0]}
-            </p>
-          )}
-        </div>
       )}
 
       {/* 有効フラグ */}

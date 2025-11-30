@@ -23,7 +23,6 @@ export function CompanySettingsForm({ company }: Props) {
   const [brandName, setBrandName] = useState(company?.brand_name ?? '')
   const [aboutText, setAboutText] = useState(company?.about_text ?? '')
   const [siteUrl, setSiteUrl] = useState(company?.site_url ?? '')
-  const [contactUrl, setContactUrl] = useState(company?.contact_url ?? '')
   const [wpBaseUrl, setWpBaseUrl] = useState(company?.wp_base_url ?? '')
   const [wpUsername, setWpUsername] = useState(company?.wp_username ?? '')
   const [wpAppPassword, setWpAppPassword] = useState('')
@@ -53,7 +52,6 @@ export function CompanySettingsForm({ company }: Props) {
         brand_name: brandName,
         about_text: aboutText,
         site_url: siteUrl,
-        contact_url: contactUrl,
         wp_base_url: wpBaseUrl,
         wp_username: wpUsername,
         wp_app_password: wpAppPassword,
@@ -188,25 +186,6 @@ export function CompanySettingsForm({ company }: Props) {
             )}
           </div>
 
-          <div>
-            <label htmlFor="contact_url" className="block text-sm font-medium">
-              お問い合わせURL
-            </label>
-            <input
-              id="contact_url"
-              type="url"
-              value={contactUrl}
-              onChange={(e) => setContactUrl(e.target.value)}
-              placeholder="https://example.com/contact"
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
-              disabled={isLoading}
-            />
-            {fieldErrors.contact_url && (
-              <p className="mt-1 text-sm text-red-600">
-                {fieldErrors.contact_url[0]}
-              </p>
-            )}
-          </div>
         </div>
       </section>
 

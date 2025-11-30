@@ -24,7 +24,6 @@ test.describe('会社・サイト設定', () => {
     await page.fill('#brand_name', 'テストブランド')
     await page.fill('#about_text', 'テスト会社の紹介文です。')
     await page.fill('#site_url', 'https://example.com')
-    await page.fill('#contact_url', 'https://example.com/contact')
     await page.fill('#wp_base_url', 'https://blog.example.com')
     await page.fill('#wp_username', 'admin')
     await page.fill('#wp_app_password', 'xxxx xxxx xxxx xxxx')

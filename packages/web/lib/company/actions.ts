@@ -10,6 +10,7 @@ import {
 } from './validation'
 import { revalidatePath } from 'next/cache'
 import type { Company } from '@prisma/client'
+import { encrypt } from '@/lib/crypto/encryption'
 
 export type CompanyActionResult<T = void> =
   | { success: true; data?: T }
@@ -84,12 +85,8 @@ export async function createCompany(
     return { success: false, error: '会社設定は既に登録されています' }
   }
 
-  // Secret Managerへアプリパスワードを保存
-  // TODO: 本番環境ではGoogle Cloud Secret Manager APIを使用
-  const secretName = await saveAppPasswordToSecretManager(
-    userId.toString(),
-    validatedFields.data.wp_app_password
-  )
+  // アプリパスワードを暗号化
+  const encryptedPassword = encryptAppPassword(validatedFields.data.wp_app_password)
 
   await prisma.company.create({
     data: {
@@ -98,10 +95,9 @@ export async function createCompany(
       brand_name: validatedFields.data.brand_name || null,
       about_text: validatedFields.data.about_text || null,
       site_url: validatedFields.data.site_url || null,
-      contact_url: validatedFields.data.contact_url || null,
       wp_base_url: validatedFields.data.wp_base_url,
       wp_username: validatedFields.data.wp_username,
-      wp_app_password_secret_name: secretName,
+      wp_app_password_secret_name: encryptedPassword,
       wp_default_status: validatedFields.data.wp_default_status,
     },
   })
@@ -139,13 +135,10 @@ export async function updateCompany(
     return { success: false, error: '会社設定が見つかりません' }
   }
 
-  let secretName = existing.wp_app_password_secret_name
+  let encryptedPassword = existing.wp_app_password_secret_name
   if (validatedFields.data.wp_app_password) {
-    // 新しいパスワードが入力された場合のみ更新
-    secretName = await saveAppPasswordToSecretManager(
-      userId.toString(),
-      validatedFields.data.wp_app_password
-    )
+    // 新しいパスワードが入力された場合のみ暗号化して更新
+    encryptedPassword = encryptAppPassword(validatedFields.data.wp_app_password)
   }
 
   await prisma.company.update({
@@ -155,10 +148,9 @@ export async function updateCompany(
       brand_name: validatedFields.data.brand_name || null,
       about_text: validatedFields.data.about_text || null,
       site_url: validatedFields.data.site_url || null,
-      contact_url: validatedFields.data.contact_url || null,
       wp_base_url: validatedFields.data.wp_base_url,
       wp_username: validatedFields.data.wp_username,
-      wp_app_password_secret_name: secretName,
+      wp_app_password_secret_name: encryptedPassword,
       wp_default_status: validatedFields.data.wp_default_status,
     },
   })
@@ -168,14 +160,9 @@ export async function updateCompany(
 }
 
 /**
- * Secret Managerへアプリパスワードを保存
- * TODO: 本番環境ではGoogle Cloud Secret Manager APIを使用
+ * アプリパスワードを暗号化
+ * AES-256-GCMで暗号化してBase64文字列を返す
  */
-async function saveAppPasswordToSecretManager(
-  userId: string,
-  _password: string
-): Promise<string> {
-  // 開発環境では仮のシークレット名を返す
-  const secretName = `wp-app-password-${userId}-${Date.now()}`
-  return secretName
+function encryptAppPassword(password: string): string {
+  return encrypt(password)
 }

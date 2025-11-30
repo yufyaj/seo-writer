@@ -3,7 +3,7 @@ import { z } from 'zod'
 /**
  * スケジュールタイプの定義
  */
-export const scheduleTypes = ['none', 'daily', 'weekly', 'cron'] as const
+export const scheduleTypes = ['none', 'daily', 'weekly'] as const
 export type ScheduleType = (typeof scheduleTypes)[number]
 
 /**
@@ -13,11 +13,18 @@ export const daysOfWeek = [1, 2, 3, 4, 5, 6, 7] as const
 export type DayOfWeek = (typeof daysOfWeek)[number]
 
 /**
- * 時刻のバリデーション（HH:MM形式）
+ * 実行時間（0-23時）
  */
-const timeSchema = z
-  .string()
-  .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, '時刻はHH:MM形式で入力してください')
+export const hours = Array.from({ length: 24 }, (_, i) => i) as number[]
+
+/**
+ * 時刻のバリデーション（0-23の整数）
+ */
+const hourSchema = z
+  .number()
+  .int()
+  .min(0, '時刻は0〜23で指定してください')
+  .max(23, '時刻は0〜23で指定してください')
   .optional()
   .nullable()
 
@@ -30,7 +37,7 @@ export const scheduleSchema = z
     schedule_type: z.enum(scheduleTypes, {
       message: 'スケジュールタイプを選択してください',
     }),
-    daily_time: timeSchema,
+    daily_hour: hourSchema,
     weekly_day_of_week: z
       .number()
       .int()
@@ -38,21 +45,20 @@ export const scheduleSchema = z
       .max(7, '曜日は1〜7で指定してください')
       .optional()
       .nullable(),
-    weekly_time: timeSchema,
-    cron_expression: z.string().optional().nullable(),
+    weekly_hour: hourSchema,
     is_enabled: z.boolean().default(false),
   })
   .superRefine((data, ctx) => {
-    // dailyの場合はdaily_timeが必須
-    if (data.schedule_type === 'daily' && !data.daily_time) {
+    // dailyの場合はdaily_hourが必須
+    if (data.schedule_type === 'daily' && data.daily_hour === null) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: '毎日実行の場合は実行時刻を指定してください',
-        path: ['daily_time'],
+        path: ['daily_hour'],
       })
     }
 
-    // weeklyの場合はweekly_day_of_weekとweekly_timeが必須
+    // weeklyの場合はweekly_day_of_weekとweekly_hourが必須
     if (data.schedule_type === 'weekly') {
       if (!data.weekly_day_of_week) {
         ctx.addIssue({
@@ -61,22 +67,13 @@ export const scheduleSchema = z
           path: ['weekly_day_of_week'],
         })
       }
-      if (!data.weekly_time) {
+      if (data.weekly_hour === null) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: '毎週実行の場合は実行時刻を指定してください',
-          path: ['weekly_time'],
+          path: ['weekly_hour'],
         })
       }
-    }
-
-    // cronの場合はcron_expressionが必須
-    if (data.schedule_type === 'cron' && !data.cron_expression) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'cron形式の場合はcron式を指定してください',
-        path: ['cron_expression'],
-      })
     }
   })
 
